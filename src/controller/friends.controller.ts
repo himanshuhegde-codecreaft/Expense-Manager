@@ -9,7 +9,10 @@ export class FriendsController{
         return false;
     }
     addFriend(friend:iFriend){
-        // if(!FriendRepository)
+        if(!FriendRepository.getInstance()){
+            return {success:false}
+        }
         console.log('Adding friend to database...',friend)
+        FriendRepository.getInstance().addFriend(friend);
     }
 }
