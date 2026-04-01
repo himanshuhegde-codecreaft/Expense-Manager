@@ -1,5 +1,6 @@
-const readline = require("node:readline");
-const { stdin: input, stdout: output } = require("node:process");
+// const readline = require("node:readline");
+import { createInterface } from "node:readline";
+import { stdin,stdout } from "node:process";
 
 export interface AskOptions {
   defaultAnswer?: string | undefined;
@@ -13,7 +14,7 @@ export interface Choice {
 
 
 export const openInteractionManager = () => {
-  const rl = readline.createInterface({ input, output });
+  const rl = createInterface({ input:stdin, output:stdout });
   const ask:(question: string, options?: AskOptions)=>Promise<string|undefined> = async (question: string, options?: AskOptions) => {
     const { defaultAnswer, validator } = options || {};
     return new Promise((resolve) => {

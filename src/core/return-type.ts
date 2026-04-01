@@ -1,4 +1,4 @@
-export interface ReturnType<T>{
-    success:string;
-    data:T;
+export interface ReturnModel<T = void>{
+    success:boolean;
+    data?:T;
 }
