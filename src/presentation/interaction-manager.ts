@@ -19,7 +19,7 @@ export const openInteractionManager = () => {
     const { defaultAnswer, validator } = options || {};
     return new Promise((resolve) => {
       rl.question(
-        question + `${defaultAnswer ? "(" + defaultAnswer + ")" : ""}`,
+        question + `${defaultAnswer ? "(" + defaultAnswer + ")" : ""}: `,
         (answer: string) => {
           if (validator && !validator(answer)) {
             console.log("Invalid");

@@ -1,6 +1,7 @@
 import type { PageOptions } from "../core/page-option.js";
 import type { ReturnModel } from "../core/return-type.js";
 import type { iFriend } from "../models/friend.model.js";
+import type { searchFriendReturnType } from "./firends-repository-type.js";
 
 export class FriendRepository {
   private static instance: FriendRepository;
@@ -14,33 +15,79 @@ export class FriendRepository {
 
   private constructor() {}
   addFriend(friend: iFriend): ReturnModel {
-      this.friends.push(friend);
-      return { success: true }; 
+    this.friends.push(friend);
+    return { success: true };
   }
 
   findFriendByEmail(email: string) {
-    return this.friends.find((friend) => friend.email === email);
+    const result = this.friends.find((friend) => friend.email === email);
+    if (result === undefined) {
+      return { success: false };
+    }
+    return { success: true, data: result };
   }
 
   findFriendByPhone(phone: string) {
-    return this.friends.find((friend) => friend.phone === phone);
+    const result = this.friends.find((friend) => friend.phone === phone);
+    if (result === undefined) {
+      return { success: false };
+    }
+    return { success: true, data: result };
   }
 
-  searchFriends(query: string, pageOption?: PageOptions) {
-    const lowerQuery = query.toLowerCase();
-    const filtered = this.friends.filter((friend) => {
-      friend.name.toLowerCase().includes(lowerQuery) ||
-        friend.email?.toLowerCase().includes(lowerQuery) ||
-        friend.phone?.toLowerCase().includes(lowerQuery);
-    });
+  findFriendByName(name: string): ReturnModel<iFriend | undefined> {
+    const result = this.friends.find((friend) => friend.name === name);
+    return { success: true, data: result };
+  }
 
+  updateFriend(data: iFriend): ReturnModel {
+    this.friends = this.friends.map((friend) => {
+      if (data.id === friend.id) return data;
+      return friend;
+    });
+    return { success: true };
+  }
+
+  searchFriends(
+    query: string,
+    pageOption?: PageOptions,
+  ): ReturnModel<searchFriendReturnType> {
+    if (pageOption === undefined) {
+      pageOption = {
+        offset: 0,
+        limit: 5,
+      };
+    }
+    if (query === "") {
+      return {
+        success: true,
+        data: {
+          result: [...this.friends].slice(
+            pageOption?.offset || 0,
+            (pageOption?.offset || 0) + (pageOption?.limit || 5),
+          ),
+          matched: this.friends.length,
+          total: this.friends.length,
+        },
+      };
+    }
+    const lowerQuery = query.toLowerCase();
+    const filtered = this.friends.filter(
+      (friend) =>
+        friend.name.toLowerCase().includes(lowerQuery) ||
+        friend.email?.toLowerCase().includes(lowerQuery) ||
+        friend.phone?.toLowerCase().includes(lowerQuery),
+    );
     return {
-      data: filtered.slice(
-        pageOption?.offset || 0,
-        (pageOption?.offset || 0) + (pageOption?.limit || 5),
-      ),
-      matched: filtered.length,
-      total: this.friends.length,
+      success: true,
+      data: {
+        result: filtered.slice(
+          pageOption?.offset || 0,
+          (pageOption?.offset || 0) + (pageOption?.limit || 5),
+        ),
+        matched: filtered.length,
+        total: this.friends.length,
+      },
     };
   }
 }
