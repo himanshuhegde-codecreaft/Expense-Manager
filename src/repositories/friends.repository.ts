@@ -48,6 +48,11 @@ export class FriendRepository {
     return { success: true };
   }
 
+   deleteFriend(name:string):ReturnModel{
+    this.friends = this.friends.filter(friend=>friend.name!==name)
+    return {success:true}
+  }
+
   searchFriends(
     query: string,
     pageOption?: PageOptions,
@@ -90,4 +95,5 @@ export class FriendRepository {
       },
     };
   }
+ 
 }
