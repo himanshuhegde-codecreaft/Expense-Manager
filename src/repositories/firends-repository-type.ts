@@ -1,7 +1,7 @@
-import type { iFriend } from "../models/friend.model.js";
+import type { Friend } from "../models/friend.model.js";
 
 export interface searchFriendReturnType {
-  result: iFriend[];
+  result: Friend[];
   matched: number;
   total: number;
 }

@@ -1,11 +1,11 @@
 import type { PageOptions } from "../core/page-option.js";
 import type { ReturnModel } from "../core/return-type.js";
-import type { iFriend } from "../models/friend.model.js";
+import type { Friend } from "../models/friend.model.js";
 import type { searchFriendReturnType } from "./firends-repository-type.js";
 
 export class FriendRepository {
   private static instance: FriendRepository;
-  private friends: iFriend[] = [];
+  private friends: Friend[] = [];
   static getInstance() {
     if (!FriendRepository.instance) {
       FriendRepository.instance = new FriendRepository();
@@ -14,86 +14,176 @@ export class FriendRepository {
   }
 
   private constructor() {}
-  addFriend(friend: iFriend): ReturnModel {
-    this.friends.push(friend);
-    return { success: true };
+  addFriend(friend: Friend): ReturnModel {
+    try {
+      // this.friends.push(friend);
+      
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to add the user",
+      };
+    }
+  }
+
+  checkEmailExists(emailToSearch: string): ReturnModel<boolean> {
+    try {
+      const emailExists: boolean = this.friends.some(
+        (friend) => friend.email === emailToSearch,
+      );
+      return { success: true, data: emailExists };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to check email existence",
+      };
+    }
+  }
+
+  checkPhoneNumberExists(numberToSearch: string): ReturnModel<boolean> {
+    try {
+      const numberExists: boolean = this.friends.some(
+        (friend) => friend.phone === numberToSearch,
+      );
+      return { success: true, data: numberExists };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to check phone number existence",
+      };
+    }
   }
 
   findFriendByEmail(email: string) {
-    const result = this.friends.find((friend) => friend.email === email);
-    if (result === undefined) {
-      return { success: false };
+    try {
+      const result = this.friends.find((friend) => friend.email === email);
+      if (result === undefined) {
+        return { success: false };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to find friend by email",
+      };
     }
-    return { success: true, data: result };
   }
 
   findFriendByPhone(phone: string) {
-    const result = this.friends.find((friend) => friend.phone === phone);
-    if (result === undefined) {
-      return { success: false };
+    try {
+      const result = this.friends.find((friend) => friend.phone === phone);
+      if (result === undefined) {
+        return { success: false };
+      }
+      return { success: true, data: result };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to find friend by phone number",
+      };
     }
-    return { success: true, data: result };
   }
 
-  findFriendByName(name: string): ReturnModel<iFriend | undefined> {
-    const result = this.friends.find((friend) => friend.name === name);
-    return { success: true, data: result };
+  findFriendByName(name: string): ReturnModel<Friend | undefined> {
+    try {
+      const result = this.friends.find((friend) => friend.name === name);
+      return { success: true, data: result };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to find friend by name",
+      };
+    }
   }
 
-  updateFriend(data: iFriend): ReturnModel {
-    this.friends = this.friends.map((friend) => {
-      if (data.id === friend.id) return data;
-      return friend;
-    });
-    return { success: true };
+  updateFriend(data: Friend): ReturnModel {
+    try {
+      this.friends = this.friends.map((friend) => {
+        if (data.id === friend.id) return data;
+        return friend;
+      });
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to update friend",
+      };
+    }
   }
 
-   deleteFriend(name:string):ReturnModel{
-    this.friends = this.friends.filter(friend=>friend.name!==name)
-    return {success:true}
+  deleteFriend(name: string): ReturnModel {
+    try {
+      this.friends = this.friends.filter((friend) => friend.name !== name);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to delete friend",
+      };
+    }
   }
 
   searchFriends(
     query: string,
-    pageOption?: PageOptions,
+    pageOption: PageOptions = { offset: 0, limit: 5 },
   ): ReturnModel<searchFriendReturnType> {
-    if (pageOption === undefined) {
-      pageOption = {
-        offset: 0,
-        limit: 5,
-      };
-    }
-    if (query === "") {
+    try {
+      if (query === "") {
+        return {
+          success: true,
+          data: {
+            result: [...this.friends].slice(
+              pageOption?.offset || 0,
+              (pageOption?.offset || 0) + (pageOption?.limit || 5),
+            ),
+            matched: this.friends.length,
+            total: this.friends.length,
+          },
+        };
+      }
+      const lowerQuery = query.toLowerCase();
+      const filtered = this.friends.filter(
+        (friend) =>
+          friend.name.toLowerCase().includes(lowerQuery) ||
+          friend.email?.toLowerCase().includes(lowerQuery) ||
+          friend.phone?.toLowerCase().includes(lowerQuery),
+      );
       return {
         success: true,
         data: {
-          result: [...this.friends].slice(
+          result: filtered.slice(
             pageOption?.offset || 0,
             (pageOption?.offset || 0) + (pageOption?.limit || 5),
           ),
-          matched: this.friends.length,
+          matched: filtered.length,
           total: this.friends.length,
         },
       };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Failed to search friends",
+      };
     }
-    const lowerQuery = query.toLowerCase();
-    const filtered = this.friends.filter(
-      (friend) =>
-        friend.name.toLowerCase().includes(lowerQuery) ||
-        friend.email?.toLowerCase().includes(lowerQuery) ||
-        friend.phone?.toLowerCase().includes(lowerQuery),
-    );
-    return {
-      success: true,
-      data: {
-        result: filtered.slice(
-          pageOption?.offset || 0,
-          (pageOption?.offset || 0) + (pageOption?.limit || 5),
-        ),
-        matched: filtered.length,
-        total: this.friends.length,
-      },
-    };
   }
- 
 }
