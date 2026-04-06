@@ -1,20 +1,19 @@
 import {
   Database,
-  type Dataset,
-  type Row,
   JsonAdapter,
 } from '../core/storage/db.js';
 import type { Friend } from './friend.model.js';
 
 interface AppData  {
   friends: Friend[];
+  Group : Friend[];
 }
 
 export class AppDBManager {
   private constructor() {
     this.db = new Database<AppData>(
       '../../data/data.json',
-      JsonAdapter,
+      new JsonAdapter,
     );
   }
   private static sharedInstance: AppDBManager | undefined = undefined;

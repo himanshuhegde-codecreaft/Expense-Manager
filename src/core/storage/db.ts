@@ -6,36 +6,37 @@ export type Row = Record<string, ColumnData>; // name: "", email: "am@email.com"
 
 type Table = Row[];
 
-export type Dataset = {
-  [tableName: string]: Table;
-};
+// export type Dataset = {
+//   [tableName: string]: Table;
+// };
 
-export interface DatabaseStorageAdapter {
-  parse: (content: string) => Dataset;
-  serialize: (dataset: Dataset) => string;
+export interface DatabaseStorageAdapter<T> {
+  parse: (content: string) => T;
+  serialize: (dataset: T) => string;
 }
 
-export const JsonAdapter: DatabaseStorageAdapter = {
+export class JsonAdapter<T> implements DatabaseStorageAdapter<T> {
   parse(content: string) {
     try {
-      return JSON.parse(content);
+      return JSON.parse(content) as T;
     } catch (e) {
       console.error(
         'Given filePath is not empty and its content is not valid JSON.',
       );
       throw e;
     }
-  },
-  serialize(dataset: Dataset) {
+  }
+  serialize(dataset: T) {
     return JSON.stringify(dataset, null, 2);
-  },
-};
+  }
+}
+
 
 export class Database<T extends { [K in keyof T]: Table }> {
   private readonly dataStore: T = {} as T;
   constructor(
     private readonly filePath: string,
-    private readonly adapter: DatabaseStorageAdapter = JsonAdapter,
+    private readonly adapter: DatabaseStorageAdapter<T>,
   ) {
     if (!filePath) {
       throw new Error('Missing file path argument.');
@@ -88,7 +89,7 @@ export class Database<T extends { [K in keyof T]: Table }> {
     try {
       await fs.promises.writeFile(
         this.filePath,
-        this.adapter.serialize(this.dataStore as unknown as Dataset),
+        this.adapter.serialize(this.dataStore as unknown as T),
       );
     } catch (e) {
       console.error('Failed to save data to the given filePath.');

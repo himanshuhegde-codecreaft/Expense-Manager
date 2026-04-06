@@ -7,6 +7,7 @@ import { FriendRepository } from "../repositories/friends.repository.js";
 
 export class FriendsController {
   addFriend(friend: Friend): ReturnModel {
+    const conflictUserAttributes: string[] = [];
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "Server Error" };
@@ -15,17 +16,19 @@ export class FriendsController {
 
     if (
       friend.email !== undefined &&
-      friendInstance.checkEmailExists(friend.email)
+      friendInstance.checkEmailExists(friend.email).data
     ) {
-      throw new ConflictError(`Email`);
+      conflictUserAttributes.push("email");
     }
     if (
       friend.phone !== undefined &&
-      friendInstance.checkPhoneNumberExists(friend.phone)
+      friendInstance.checkPhoneNumberExists(friend.phone).data
     ) {
-      throw new ConflictError("PhoneNo");
+      conflictUserAttributes.push("phone");
     }
-
+    if (conflictUserAttributes.length !== 0) {
+      throw new ConflictError(conflictUserAttributes);
+    }
     const response = friendInstance.addFriend(friend);
     if (response.success) return { success: true };
     console.error("Error: adding friend to DB failed");
@@ -84,7 +87,24 @@ export class FriendsController {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "Server Error" };
     }
-    const reponse = FriendRepository.getInstance().updateFriend(data);
+    const conflictUserAttributes:string[] = []
+        const friendInstance = FriendRepository.getInstance();
+    if (
+      data.email !== undefined &&
+      friendInstance.checkEmailExists(data.email).data
+    ) {
+      conflictUserAttributes.push("email");
+    }
+    if (
+      data.phone !== undefined &&
+      friendInstance.checkPhoneNumberExists(data.phone).data
+    ) {
+      conflictUserAttributes.push("phone");
+    }
+    if (conflictUserAttributes.length !== 0) {
+      throw new ConflictError(conflictUserAttributes);
+    }
+    const reponse =friendInstance.updateFriend(data);
     if (!reponse.success) {
       console.error("Failed to update data in the DB");
       return { success: false, message: "Failed to update the user" };
@@ -105,7 +125,7 @@ export class FriendsController {
     if (friend.data === undefined) {
       return { success: false, message: "User doesnot Exisit" };
     }
-    if (friend.data.balance !== 0) {
+    if (Number(friend.data.balance) !== 0) {
       return {
         success: false,
         message: "User cannot be deleted. The User still has balance",

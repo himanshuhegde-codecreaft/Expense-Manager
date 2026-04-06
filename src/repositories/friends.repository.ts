@@ -19,8 +19,7 @@ export class FriendRepository {
   }
   addFriend(friend: Friend): ReturnModel {
     try {
-      this.friends.push(friend);
-      
+      this.friends.push(friend);      
       return { success: true };
     } catch (error) {
       return {
@@ -33,6 +32,8 @@ export class FriendRepository {
 
   checkEmailExists(emailToSearch: string): ReturnModel<boolean> {
     try {
+      if(emailToSearch==="")
+        return {success:true,data:false}
       const emailExists: boolean = this.friends.some(
         (friend) => friend.email === emailToSearch,
       );
@@ -50,6 +51,8 @@ export class FriendRepository {
 
   checkPhoneNumberExists(numberToSearch: string): ReturnModel<boolean> {
     try {
+      if(numberToSearch === '')
+        return {success:true,data:false}
       const numberExists: boolean = this.friends.some(
         (friend) => friend.phone === numberToSearch,
       );

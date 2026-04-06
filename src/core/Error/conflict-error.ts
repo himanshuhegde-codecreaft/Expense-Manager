@@ -1,7 +1,6 @@
 export class ConflictError extends Error {
-  constructor(readonly conflictName: string) {
-      super(`${conflictName} already exists. Use other ${conflictName}`);
+  constructor(readonly conflictAttributes: string[]) {
+      super(`${conflictAttributes.join(',')} already exists.`);
       this.name = "Conflict Error";
-      this.conflictName = `${conflictName} Conflict`
   }
 }
