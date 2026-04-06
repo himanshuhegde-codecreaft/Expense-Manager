@@ -6,7 +6,7 @@ import type { searchFriendReturnType } from "../repositories/firends-repository-
 import { FriendRepository } from "../repositories/friends.repository.js";
 
 export class FriendsController {
-  addFriend(friend: Friend): ReturnModel {
+  async addFriend(friend: Friend): Promise<ReturnModel> {
     const conflictUserAttributes: string[] = [];
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
@@ -29,7 +29,7 @@ export class FriendsController {
     if (conflictUserAttributes.length !== 0) {
       throw new ConflictError(conflictUserAttributes);
     }
-    const response = friendInstance.addFriend(friend);
+    const response = await friendInstance.addFriend(friend);
     if (response.success) return { success: true };
     console.error("Error: adding friend to DB failed");
     return { success: false, message: "Failed to add the user" };
@@ -82,13 +82,13 @@ export class FriendsController {
     return { success: true, data: response.data };
   }
 
-  updateFriend(data: Friend): ReturnModel {
+  async updateFriend(data: Friend): Promise<ReturnModel> {
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "Server Error" };
     }
-    const conflictUserAttributes:string[] = []
-        const friendInstance = FriendRepository.getInstance();
+    const conflictUserAttributes: string[] = [];
+    const friendInstance = FriendRepository.getInstance();
     if (
       data.email !== undefined &&
       friendInstance.checkEmailExists(data.email).data
@@ -104,7 +104,7 @@ export class FriendsController {
     if (conflictUserAttributes.length !== 0) {
       throw new ConflictError(conflictUserAttributes);
     }
-    const reponse =friendInstance.updateFriend(data);
+    const reponse = await friendInstance.updateFriend(data);
     if (!reponse.success) {
       console.error("Failed to update data in the DB");
       return { success: false, message: "Failed to update the user" };
@@ -112,7 +112,7 @@ export class FriendsController {
     return { success: true };
   }
 
-  deleteFriend(name: string): ReturnModel {
+  async deleteFriend(name: string): Promise<ReturnModel> {
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "server Error" };
@@ -131,7 +131,7 @@ export class FriendsController {
         message: "User cannot be deleted. The User still has balance",
       };
     }
-    const response = FriendRepository.getInstance().deleteFriend(name);
+    const response = await FriendRepository.getInstance().deleteFriend(name);
     if (!response.success) {
       return { success: false, message: "Server Error" };
     }

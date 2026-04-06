@@ -1,27 +1,24 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
-export type ColumnData = string | number | boolean | undefined;
+export type ColumnData = string | number | boolean | null;
 export type Row = Record<string, ColumnData>; // name: "", email: "am@email.com", phone: 234
 
 type Table = Row[];
 
-// export type Dataset = {
-//   [tableName: string]: Table;
-// };
 
 export interface DatabaseStorageAdapter<T> {
   parse: (content: string) => T;
   serialize: (dataset: T) => string;
 }
 
-export class JsonAdapter<T> implements DatabaseStorageAdapter<T> {
+export class JsonStorageAdapter<T> implements DatabaseStorageAdapter<T> {
   parse(content: string) {
     try {
       return JSON.parse(content) as T;
     } catch (e) {
       console.error(
-        'Given filePath is not empty and its content is not valid JSON.',
+        "Given filePath is not empty and its content is not valid JSON.",
       );
       throw e;
     }
@@ -31,7 +28,6 @@ export class JsonAdapter<T> implements DatabaseStorageAdapter<T> {
   }
 }
 
-
 export class Database<T extends { [K in keyof T]: Table }> {
   private readonly dataStore: T = {} as T;
   constructor(
@@ -39,7 +35,7 @@ export class Database<T extends { [K in keyof T]: Table }> {
     private readonly adapter: DatabaseStorageAdapter<T>,
   ) {
     if (!filePath) {
-      throw new Error('Missing file path argument.');
+      throw new Error("Missing file path argument.");
     }
 
     const dir = path.dirname(filePath);
@@ -49,9 +45,10 @@ export class Database<T extends { [K in keyof T]: Table }> {
     try {
       stats = fs.statSync(filePath);
     } catch (err: any) {
-      if (err.code === 'ENOENT') {
+      if (err.code === "ENOENT") {
+        fs.writeFileSync(filePath, this.adapter.serialize(this.dataStore));
         return;
-      } else if (err.code === 'EACCES') {
+      } else if (err.code === "EACCES") {
         throw new Error(`Cannot access path "${filePath}".`);
       } else {
         throw new Error(
@@ -70,7 +67,7 @@ export class Database<T extends { [K in keyof T]: Table }> {
     if (stats.size > 0) {
       let data: string;
       try {
-        data = fs.readFileSync(filePath, { encoding: 'utf-8' });
+        data = fs.readFileSync(filePath, { encoding: "utf-8" });
       } catch (err) {
         throw err;
       }
@@ -87,12 +84,14 @@ export class Database<T extends { [K in keyof T]: Table }> {
 
   async save() {
     try {
+      console.log("Saving in DB...");
+
       await fs.promises.writeFile(
         this.filePath,
         this.adapter.serialize(this.dataStore as unknown as T),
       );
     } catch (e) {
-      console.error('Failed to save data to the given filePath.');
+      console.error("Failed to save data to the given filePath.");
       throw e;
     }
   }

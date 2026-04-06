@@ -57,9 +57,9 @@ const friendsController = new FriendsController();
 
       let response: ReturnModel;
       if (action === "addFriend") {
-        response = friendsController.addFriend(friendFormDetails);
+        response = await friendsController.addFriend(friendFormDetails);
       }else{
-        response = friendsController.updateFriend(friendFormDetails)
+        response = await friendsController.updateFriend(friendFormDetails)
       }
       if (!response.success) {
         console.log(response.message);
@@ -99,7 +99,7 @@ const deleteFriend = async () => {
   if (answer === "Exit" || answer === undefined) {
     return;
   }
-  const response = friendsController.deleteFriend(answer);
+  const response = await friendsController.deleteFriend(answer);
   if (!response.success) {
     console.log(response.message);
     return;
@@ -204,7 +204,7 @@ const updateFriends = async () => {
   await collectFriendDetails(friendUpdateDetails,'updateFriend',{
     defaultValue:friend.data
   })
-  const response = friendsController.updateFriend(friendUpdateDetails);
+  const response = await friendsController.updateFriend(friendUpdateDetails);
   if (!response.success) {
     console.log(response.message);
   }

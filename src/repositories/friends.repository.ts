@@ -17,9 +17,10 @@ export class FriendRepository {
   private constructor() {
     this.friends = AppDBManager.getInstance().getDB().table("friends") as Friend[];
   }
-  addFriend(friend: Friend): ReturnModel {
+  async addFriend(friend: Friend): Promise<ReturnModel> {
     try {
-      this.friends.push(friend);      
+      this.friends.push(friend);    
+      AppDBManager.getInstance().save();  
       return { success: true };
     } catch (error) {
       return {
@@ -119,12 +120,13 @@ export class FriendRepository {
     }
   }
 
-  updateFriend(data: Friend): ReturnModel {
+  async updateFriend(data: Friend): Promise<ReturnModel> {
     try {
       this.friends = this.friends.map((friend) => {
         if (data.id === friend.id) return data;
         return friend;
       });
+      AppDBManager.getInstance().save();
       return { success: true };
     } catch (error) {
       return {
@@ -135,9 +137,10 @@ export class FriendRepository {
     }
   }
 
-  deleteFriend(name: string): ReturnModel {
+  async deleteFriend(name: string): Promise<ReturnModel> {
     try {
       this.friends = this.friends.filter((friend) => friend.name !== name);
+      AppDBManager.getInstance().save();
       return { success: true };
     } catch (error) {
       return {
