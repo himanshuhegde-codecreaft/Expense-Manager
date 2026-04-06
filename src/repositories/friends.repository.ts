@@ -1,5 +1,6 @@
 import type { PageOptions } from "../core/page-option.js";
 import type { ReturnModel } from "../core/return-type.js";
+import { AppDBManager } from "../models/db-manager.js";
 import type { Friend } from "../models/friend.model.js";
 import type { searchFriendReturnType } from "./firends-repository-type.js";
 
@@ -13,10 +14,12 @@ export class FriendRepository {
     return FriendRepository.instance;
   }
 
-  private constructor() {}
+  private constructor() {
+    this.friends = AppDBManager.getInstance().getDB().table("friends") as Friend[];
+  }
   addFriend(friend: Friend): ReturnModel {
     try {
-      // this.friends.push(friend);
+      this.friends.push(friend);
       
       return { success: true };
     } catch (error) {

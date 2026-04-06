@@ -6,7 +6,7 @@ import {
 } from '../core/storage/db.js';
 import type { Friend } from './friend.model.js';
 
-interface AppData extends Dataset {
+interface AppData  {
   friends: Friend[];
 }
 

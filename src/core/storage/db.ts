@@ -6,7 +6,9 @@ export type Row = Record<string, ColumnData>; // name: "", email: "am@email.com"
 
 type Table = Row[];
 
-export type Dataset = Record<string, Table>;
+export type Dataset = {
+  [tableName: string]: Table;
+};
 
 export interface DatabaseStorageAdapter {
   parse: (content: string) => Dataset;
