@@ -11,11 +11,9 @@
   "author": "",
   "type": "module",
   "license": "ISC",
-  "dependencies": {
-    "tsc": "^2.0.4",
-    "typescript": "^6.0.2"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
   }
 }

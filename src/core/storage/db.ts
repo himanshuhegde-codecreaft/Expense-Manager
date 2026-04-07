@@ -88,7 +88,7 @@ export class Database<T extends { [K in keyof T]: Table }> {
 
       await fs.promises.writeFile(
         this.filePath,
-        this.adapter.serialize(this.dataStore as unknown as T),
+        this.adapter.serialize(this.dataStore),
       );
     } catch (e) {
       console.error("Failed to save data to the given filePath.");

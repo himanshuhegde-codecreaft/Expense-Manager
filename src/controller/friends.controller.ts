@@ -8,6 +8,10 @@ import { FriendRepository } from "../repositories/friends.repository.js";
 export class FriendsController {
   async addFriend(friend: Friend): Promise<ReturnModel> {
     const conflictUserAttributes: string[] = [];
+  
+      if(friend.email === "") friend.email = null;
+      if(friend.phone === "") friend.phone = null
+    
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "Server Error" };
@@ -82,21 +86,26 @@ export class FriendsController {
     return { success: true, data: response.data };
   }
 
-  async updateFriend(data: Friend): Promise<ReturnModel> {
+  async updateFriend(data: Friend, existingData: Friend): Promise<ReturnModel> {
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "Server Error" };
     }
+    if(data.email) data.email = null;
+    if(data.phone) data.phone = null;
+
     const conflictUserAttributes: string[] = [];
     const friendInstance = FriendRepository.getInstance();
     if (
-      data.email !== undefined &&
+      existingData.email !== data.email &&
+      !data.email &&
       friendInstance.checkEmailExists(data.email).data
     ) {
       conflictUserAttributes.push("email");
     }
     if (
-      data.phone !== undefined &&
+      existingData.phone !== data.phone &&
+      !data.phone &&
       friendInstance.checkPhoneNumberExists(data.phone).data
     ) {
       conflictUserAttributes.push("phone");
@@ -112,12 +121,12 @@ export class FriendsController {
     return { success: true };
   }
 
-  async deleteFriend(name: string): Promise<ReturnModel> {
+  async deleteFriend(id: string): Promise<ReturnModel> {
     if (!FriendRepository.getInstance()) {
       console.error("Failed to get the instance of FriendRepository");
       return { success: false, message: "server Error" };
     }
-    const friend = this.findFriendByName(name);
+    const friend = this.findFriendById(id);
     if (!friend.success) {
       console.error("Failed to find friend from the DB");
       return { success: false, message: "Server Error" };
@@ -131,10 +140,36 @@ export class FriendsController {
         message: "User cannot be deleted. The User still has balance",
       };
     }
-    const response = await FriendRepository.getInstance().deleteFriend(name);
+
+    const response = await FriendRepository.getInstance().deleteFriendById(id);
     if (!response.success) {
       return { success: false, message: "Server Error" };
     }
     return { success: true };
+  }
+
+  findConflictByName(name: string) {
+    return this.searchFriend(name);
+  }
+
+  findFriendById(id: string):ReturnModel<Friend> {
+    if (!FriendRepository.getInstance()) {
+      console.error("Failed to get the instance of FriendRepository");
+      return { success: false, message: "Server Error" };
+    }
+    if (id === "") {
+      return { success: false };
+    }
+    const response = FriendRepository.getInstance().findFriendById(id);
+    if(response.data===undefined){
+      return {success: false,message:"no user exist with the id"}
+    }
+    if (!response.success) {
+      return { success: false, message: "Failed to find friend" };
+    }
+    if (response.data === undefined) {
+      return { success: false, message: "No such user Exists" };
+    }
+    return { success: true, data: response.data };
   }
 }

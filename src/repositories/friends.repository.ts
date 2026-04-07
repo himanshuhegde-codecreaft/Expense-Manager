@@ -17,6 +17,23 @@ export class FriendRepository {
   private constructor() {
     this.friends = AppDBManager.getInstance().getDB().table("friends") as Friend[];
   }
+
+  findFriendById(id:string){
+    try {
+      const result = this.friends.find((friend) => {
+        return friend.id === id});
+      return { success: true, data: result };
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to find friend by id",
+      };
+    }
+  }
+
   async addFriend(friend: Friend): Promise<ReturnModel> {
     try {
       this.friends.push(friend);    
@@ -31,9 +48,9 @@ export class FriendRepository {
     }
   }
 
-  checkEmailExists(emailToSearch: string): ReturnModel<boolean> {
+  checkEmailExists(emailToSearch: string | null): ReturnModel<boolean> {
     try {
-      if(emailToSearch==="")
+      if(emailToSearch===null)
         return {success:true,data:false}
       const emailExists: boolean = this.friends.some(
         (friend) => friend.email === emailToSearch,
@@ -50,9 +67,9 @@ export class FriendRepository {
     }
   }
 
-  checkPhoneNumberExists(numberToSearch: string): ReturnModel<boolean> {
+  checkPhoneNumberExists(numberToSearch: string | null): ReturnModel<boolean> {
     try {
-      if(numberToSearch === '')
+      if(numberToSearch === null)
         return {success:true,data:false}
       const numberExists: boolean = this.friends.some(
         (friend) => friend.phone === numberToSearch,
@@ -122,10 +139,10 @@ export class FriendRepository {
 
   async updateFriend(data: Friend): Promise<ReturnModel> {
     try {
-      this.friends = this.friends.map((friend) => {
-        if (data.id === friend.id) return data;
-        return friend;
-      });
+      const index = this.friends.findIndex(friend => friend.id === data.id);
+      if (index !== -1) {
+        this.friends[index] = data;
+      }
       AppDBManager.getInstance().save();
       return { success: true };
     } catch (error) {
@@ -137,9 +154,10 @@ export class FriendRepository {
     }
   }
 
-  async deleteFriend(name: string): Promise<ReturnModel> {
+  async deleteFriendById(id: string): Promise<ReturnModel> {
     try {
-      this.friends = this.friends.filter((friend) => friend.name !== name);
+      const index = this.friends.findIndex(friend => friend.id === id);
+      this.friends.splice(index,1)
       AppDBManager.getInstance().save();
       return { success: true };
     } catch (error) {
