@@ -75,11 +75,21 @@ export const openInteractionManager = () => {
     return choices!.find((c) => c.value === choice);
   };
 
+  const removeKeyPressHandler = (handler:(_:any,key:any)=>void)=>{
+    process.stdin.off("keypress",handler)
+  }
+
+  const handleKeyPress = (handler:(_:any,key:any)=>void)=>{
+    process.stdin.on("keypress",handler)
+  }
+
   const close = () => {
     rl.close();
   };
   return {
     ask,
+    handleKeyPress,
+    removeKeyPressHandler,
     choose,
     close,
   };
