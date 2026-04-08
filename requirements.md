@@ -57,3 +57,9 @@
     - Multi Payer - Split by Share
   - Update
   - Delete
+
+
+
+  ### todo
+  - add smart search functionality 
+  - allow user to exit from mid conversation

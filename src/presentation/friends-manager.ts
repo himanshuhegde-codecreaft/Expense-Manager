@@ -14,9 +14,20 @@ const options: Choice[] = [
   { label: "Remove Friend", value: "4" },
   { label: "Exit", value: "5" },
 ];
-
-const { ask, choose, close } = openInteractionManager();
+let { ask, choose, close } = openInteractionManager();
 const friendsController = new FriendsController();
+let isCancelled = false;
+process.stdin.on("keypress",(_, key) => {
+  if (key.name === "escape") {
+    console.log("\n\nOperation cancelled\n\n");
+    isCancelled = true;
+    close();
+    let interactionManager = openInteractionManager();
+    ask = interactionManager.ask;
+    choose = interactionManager.choose;
+    close = interactionManager.close;
+  }
+});
 
 const collectFriendDetails = async (
   friendFormDetails: Friend,
@@ -31,7 +42,10 @@ const collectFriendDetails = async (
         (await ask("Enter freind name", {
           defaultAnswer: options?.defaultValue?.name,
           validator: (input) => action === "updateFriend" || !(input === ""),
-        })) || ""
+        })) || "";
+    if (isCancelled) {
+      return;
+    }
 
     if (friendFormDetails.email === "")
       friendFormDetails.email =
@@ -39,6 +53,9 @@ const collectFriendDetails = async (
           defaultAnswer: options?.defaultValue?.email ?? "",
           validator: emailValidator,
         })) || "";
+    if (isCancelled) {
+      return;
+    }
 
     if (friendFormDetails.phone === "")
       friendFormDetails.phone =
@@ -46,6 +63,9 @@ const collectFriendDetails = async (
           defaultAnswer: options?.defaultValue?.phone ?? "",
           validator: phoneNoValidator,
         })) || "";
+    if (isCancelled) {
+      return;
+    }
 
     if (action !== "updateFriend" && friendFormDetails.balance === "")
       friendFormDetails.balance =
@@ -56,6 +76,9 @@ const collectFriendDetails = async (
             defaultAnswer: options?.defaultValue?.balance ?? "0",
           },
         )) || "";
+    if (isCancelled) {
+      return;
+    }
 
     let response: ReturnModel;
 
@@ -100,13 +123,18 @@ const addFriend = async () => {
     phone: "",
     balance: "",
   };
+
   await collectFriendDetails(friendFormDetails, "addFriend");
+  if (isCancelled) {
+    return;
+  }
 };
 
 const deleteFriend = async () => {
   const answer = await ask("Enter the name of the friend you want to Delete", {
     defaultAnswer: "Exit",
   });
+  if(isCancelled) return;
   if (answer === "Exit" || answer === undefined) {
     return;
   }
@@ -121,6 +149,7 @@ const deleteFriend = async () => {
     id = await ask("Enter the id of the you want to Delete", {
       defaultAnswer: "Exit",
     });
+    if(isCancelled) return;
   } else {
     id = conflictUsers.data.result[0]?.id;
   }
@@ -131,6 +160,7 @@ const deleteFriend = async () => {
       validator: (input) => ["yes", "no"].includes(input),
     },
   );
+  if(isCancelled) return;
   if (confirmation === "no") {
     return;
   }
@@ -159,6 +189,7 @@ const searchFriends = async () => {
     "Enter the Name,PhoneNumber or Email to search the User",
     { defaultAnswer: "" },
   );
+  if(isCancelled) return;
 
   do {
     const response = friendsController.searchFriend(info!, { offset, limit });
@@ -184,7 +215,7 @@ const searchFriends = async () => {
     }
 
     console.log(
-      `\n\n${isPrevDisabled ? "" : "P: PREV"}\t\t\t\tE: EXit\t\t\t\t${isNextDisabled ? "" : "N: NEXT"}`,
+      `\n\n${isPrevDisabled ? "" : "P: PREV"}\t\t\t\t\t\t\t\t${isNextDisabled ? "" : "N: NEXT"}`,
     );
     const action = await ask("", {
       validator: (input) => {
@@ -198,8 +229,6 @@ const searchFriends = async () => {
             if (isNextDisabled) {
               return false;
             }
-            return true;
-          case "E":
             return true;
           default:
             return false;
@@ -216,10 +245,8 @@ const searchFriends = async () => {
         offset += 5;
         currentPage++;
         break;
-      case "E":
-        isExit = true;
-        break;
     }
+    if(isCancelled) return;
   } while (!isExit);
 };
 
@@ -227,6 +254,7 @@ const updateFriends = async () => {
   const answer = await ask("Enter the name of the person you want to update", {
     defaultAnswer: "Exit",
   });
+  if(isCancelled) return;
 
   if (answer === "Exit" || answer === undefined) {
     return;
@@ -242,7 +270,8 @@ const updateFriends = async () => {
     id = await ask("Enter the id of the user you want to update.", {
       defaultAnswer: "Exit",
     });
-  }else{
+    if(isCancelled) return;
+  } else {
     id = conflictUser.data.result[0]?.id;
   }
   if (id === "Exit" || id === undefined) {
@@ -267,6 +296,7 @@ const updateFriends = async () => {
     phone: "",
     balance: friend.data.balance,
   };
+  if(isCancelled) return;
   await collectFriendDetails(friendUpdateDetails, "updateFriend", {
     defaultValue: friend.data,
   });
@@ -276,7 +306,14 @@ const updateFriends = async () => {
 
 export const manageFriends = async () => {
   while (true) {
+        if (isCancelled) {
+      isCancelled = false;
+      await manageFriends()
+      break;
+    }
     const choice = await choose("What do you want to do?", options, false);
+    console.log('\nPress ESC if you want to stop the operation in the middle\n');
+
 
     switch (choice!.value) {
       case "1":
@@ -296,5 +333,6 @@ export const manageFriends = async () => {
         close();
         return;
     }
+
   }
 };
