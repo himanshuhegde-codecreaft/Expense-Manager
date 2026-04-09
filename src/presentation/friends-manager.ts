@@ -312,24 +312,24 @@ export const manageFriends = async () => {
       isCancelled = false;
     }
     const choice = await choose("What do you want to do?", options, false);
-
-    switch (choice!.value) {
-      case "1":
-        await addFriend();
-        break;
-      case "2":
-        await searchFriends();
-        break;
-      case "3":
-        await updateFriends();
-        break;
-      case "4":
-        await deleteFriend();
-        break;
-      case "5":
-        console.log("Exiting...");
-        close();
-        return;
-    }
+    if (!isCancelled)
+      switch (choice!.value) {
+        case "1":
+          await addFriend();
+          break;
+        case "2":
+          await searchFriends();
+          break;
+        case "3":
+          await updateFriends();
+          break;
+        case "4":
+          await deleteFriend();
+          break;
+        case "5":
+          console.log("Exiting...");
+          close();
+          return;
+      }
   }
 };
